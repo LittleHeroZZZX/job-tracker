@@ -322,10 +322,28 @@ function renderCharts() {
 }
 
 /* ── Donut ── */
+function prepareChartCanvas(canvas, cssW, cssH) {
+  const W = Math.max(1, Math.round(cssW || canvas.clientWidth || canvas.width));
+  const H = Math.max(
+    1,
+    Math.round(cssH || canvas.clientHeight || canvas.height),
+  );
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.style.width = `${W}px`;
+  canvas.style.height = `${H}px`;
+  canvas.width = Math.round(W * dpr);
+  canvas.height = Math.round(H * dpr);
+
+  const ctx = canvas.getContext("2d");
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, W, H };
+}
+
 function drawStatusDonut() {
   const canvas = document.getElementById("cvStatus");
   if (!canvas) return;
-  const ctx = canvas.getContext("2d");
+  const { ctx, W, H } = prepareChartCanvas(canvas);
   const groups = {
     Offer: { color: "#3ecf8e", label: "Offer" },
     面试中: { color: "#8a83ff", label: "面试中" },
@@ -342,8 +360,6 @@ function drawStatusDonut() {
     .map(([k, v]) => ({ ...v, count: counts[k] || 0 }))
     .filter((d) => d.count > 0);
   const total = data.reduce((s, d) => s + d.count, 0);
-  const W = canvas.width,
-    H = canvas.height;
   const cx = W / 2,
     cy = H / 2,
     R = Math.min(cx, cy) - 10,
@@ -399,10 +415,11 @@ function drawMonthlyBar() {
   });
   const keys = Object.keys(monthMap).sort();
   if (!keys.length) return;
-  const W = canvas.offsetWidth || canvas.width;
-  canvas.width = W;
-  const H = canvas.height;
-  const ctx = canvas.getContext("2d");
+  const { ctx, W, H } = prepareChartCanvas(
+    canvas,
+    canvas.offsetWidth || canvas.width,
+    canvas.height,
+  );
   ctx.clearRect(0, 0, W, H);
   const pad = { left: 30, right: 14, top: 12, bottom: 32 };
   const chartW = W - pad.left - pad.right,
@@ -528,9 +545,7 @@ function drawChannelBars() {
 function drawSalaryBar() {
   const canvas = document.getElementById("cvSalary");
   if (!canvas) return;
-  const ctx = canvas.getContext("2d");
-  const W = canvas.width,
-    H = canvas.height;
+  const { ctx, W, H } = prepareChartCanvas(canvas);
   ctx.clearRect(0, 0, W, H);
   const buckets = {
     "0-10K": 0,
