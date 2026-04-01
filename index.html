@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>求职追踪器</title>
+    <link rel="stylesheet" href="css/main.css" />
+  </head>
+  <body>
+    <header id="appHeader">
+      <div class="logo">
+        <div class="logo-icon">🎯</div>
+        求职追踪器
+      </div>
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-view="list">📋 投递列表</button>
+        <button class="tab-btn" data-view="timeline">🕐 时间线</button>
+        <button class="tab-btn" data-view="calendar">📅 日程</button>
+        <button class="tab-btn" data-view="charts">📊 统计</button>
+      </nav>
+      <div class="header-right">
+        <div class="theme-picker">
+          <button class="btn btn-icon" id="themeBtn" title="切换主题">
+            🎨
+          </button>
+          <div class="theme-dropdown" id="themeDropdown">
+            <button data-theme="dark">🌙 深色</button>
+            <button data-theme="light">☀️ 浅色</button>
+            <button data-theme="ocean">🌊 海洋</button>
+            <button data-theme="purple">💜 紫调</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary" onclick="openSyncModal()">
+          ☁️ 同步
+        </button>
+        <button class="btn btn-secondary" onclick="importData()">
+          📥 导入
+        </button>
+        <div class="dropdown-wrap">
+          <button class="btn btn-secondary" id="exportBtn">📤 导出 ▾</button>
+          <div class="dropdown-menu" id="exportMenu">
+            <button onclick="exportJSON()">📄 导出 JSON</button>
+            <button onclick="exportCSV()">📊 导出 CSV</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="openModal()">＋ 添加</button>
+      </div>
+    </header>
+
+    <!-- ── 投递列表 ── -->
+    <div id="view-list">
+      <div class="stats-bar" id="statsBar"></div>
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="搜索公司、岗位…"
+            oninput="renderTable()"
+          />
+        </div>
+        <select class="filter-sel" id="filterStatus" onchange="renderTable()">
+          <option value="">全部状态</option>
+          <option>待回复</option>
+          <option>笔试</option>
+          <option>面试中</option>
+          <option>Offer</option>
+          <option>已拒绝</option>
+          <option>已鸽</option>
+        </select>
+        <select class="filter-sel" id="filterIntent" onchange="renderTable()">
+          <option value="">全部意向</option>
+          <option value="5">★★★★★</option>
+          <option value="4">★★★★</option>
+          <option value="3">★★★</option>
+          <option value="2">★★</option>
+          <option value="1">★</option>
+        </select>
+        <select class="filter-sel" id="sortKey" onchange="renderTable()">
+          <option value="applyDate_desc">投递日期 ↓</option>
+          <option value="applyDate_asc">投递日期 ↑</option>
+          <option value="company_asc">公司名 A→Z</option>
+          <option value="intent_desc">意向度 ↓</option>
+        </select>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>公司 / 岗位</th>
+              <th>投递时间</th>
+              <th>状态</th>
+              <th>面试轮次</th>
+              <th>薪资范围</th>
+              <th>意向度</th>
+              <th>匹配度</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+        <div class="empty-state" id="emptyState" style="display: none">
+          <div class="empty-icon">📋</div>
+          <h3>暂无投递记录</h3>
+          <p>点击右上角「添加」开始记录你的求职旅程</p>
+          <button
+            class="btn btn-primary"
+            style="margin-top: 16px"
+            onclick="openModal()"
+          >
+            ＋ 添加第一条
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 时间线 ── -->
+    <div id="view-timeline" style="display: none">
+      <div class="view-content" id="timelineContent"></div>
+    </div>
+
+    <!-- ── 日程日历 ── -->
+    <div id="view-calendar" style="display: none">
+      <div class="calendar-wrap">
+        <div class="cal-left">
+          <div class="cal-header">
+            <button class="btn btn-secondary btn-sm" onclick="calNav(-1)">
+              ‹
+            </button>
+            <span class="cal-title" id="calTitle"></span>
+            <button class="btn btn-secondary btn-sm" onclick="calNav(1)">
+              ›
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="calGoToday()">
+              今天
+            </button>
+          </div>
+          <div class="cal-stats" id="calStats"></div>
+          <div class="cal-grid-wrap">
+            <div class="cal-weekdays">
+              <span>日</span><span>一</span><span>二</span><span>三</span
+              ><span>四</span><span>五</span><span>六</span>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+          </div>
+        </div>
+        <div class="cal-right">
+          <div class="cal-day-panel" id="calDayPanel">
+            <div class="cal-day-empty">← 点击日期查看事件</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 统计图表 ── -->
+    <div id="view-charts" style="display: none">
+      <div class="view-content" id="chartsContent"></div>
+    </div>
+
+    <!-- ── 添加/编辑 Modal ── -->
+    <div class="modal-overlay" id="editModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title" id="modalTitle">添加投递</span>
+          <button class="modal-close" onclick="closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="form-section-title">📌 基本信息</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>公司名称 <span class="req">*</span></label>
+                <input type="text" id="f_company" placeholder="例：字节跳动" />
+              </div>
+              <div class="form-group">
+                <label>事业群/部门</label>
+                <input
+                  type="text"
+                  id="f_department"
+                  placeholder="例：电商事业群 / 前端基础架构组"
+                />
+              </div>
+              <div class="form-group">
+                <label>岗位名称 <span class="req">*</span></label>
+                <input
+                  type="text"
+                  id="f_position"
+                  placeholder="例：前端工程师"
+                />
+              </div>
+              <div class="form-group">
+                <label>工作城市</label>
+                <input type="text" id="f_city" placeholder="例：北京" />
+              </div>
+              <div class="form-group">
+                <label
+                  >招聘链接
+                  <span style="color: var(--text2); font-weight: 400"
+                    >（可自动识别图标）</span
+                  ></label
+                >
+                <input
+                  type="url"
+                  id="f_link"
+                  placeholder="粘贴 JD 链接，如 careers.bytedance.com/…"
+                />
+              </div>
+              <div class="form-group">
+                <label
+                  >公司域名
+                  <span style="color: var(--text2); font-weight: 400"
+                    >（手动指定图标，优先级最高）</span
+                  ></label
+                >
+                <input
+                  type="text"
+                  id="f_domain"
+                  placeholder="例：bytedance.com（有链接可不填）"
+                />
+              </div>
+              <div class="form-group">
+                <label>投递渠道</label>
+                <select id="f_channel" onchange="toggleChannelOther(this)">
+                  <option>Boss直聘</option>
+                  <option>拉勾</option>
+                  <option>智联招聘</option>
+                  <option>前程无忧</option>
+                  <option>猎聘</option>
+                  <option>内推</option>
+                  <option>官网</option>
+                  <option>LinkedIn</option>
+                  <option>其他</option>
+                </select>
+                <input
+                  type="text"
+                  id="f_channelOther"
+                  placeholder="填写渠道名称"
+                  style="display: none; margin-top: 6px"
+                />
+              </div>
+              <div class="form-group">
+                <label>公司规模</label>
+                <select id="f_size">
+                  <option>不限</option>
+                  <option>初创 (&lt;50人)</option>
+                  <option>中小 (50-500人)</option>
+                  <option>中大 (500-2000人)</option>
+                  <option>大型 (&gt;2000人)</option>
+                  <option>上市公司</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>投递日期 <span class="req">*</span></label>
+                <input type="date" id="f_applyDate" />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">📊 进度追踪</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>当前状态</label>
+                <select id="f_status">
+                  <option>待回复</option>
+                  <option>笔试</option>
+                  <option>面试中</option>
+                  <option>Offer</option>
+                  <option>已拒绝</option>
+                  <option>已鸽</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>面试轮次</label>
+                <select id="f_interviewRound">
+                  <option value="0">未开始</option>
+                  <option value="1">一面</option>
+                  <option value="2">二面</option>
+                  <option value="3">三面</option>
+                  <option value="4">四面+</option>
+                  <option value="5">HR面</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>笔试情况</label>
+                <select id="f_written">
+                  <option>无笔试</option>
+                  <option>未参加</option>
+                  <option>已完成</option>
+                  <option>已通过</option>
+                  <option>未通过</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label>最近进展日期</label>
+                <input type="date" id="f_lastUpdate" />
+              </div>
+            </div>
+            <div class="form-grid col1" style="margin-top: 10px">
+              <div class="form-group">
+                <label>进展备注</label>
+                <textarea
+                  id="f_progress"
+                  placeholder="面试反馈、下一步安排等…"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">💰 薪资与福利</div>
+            <div class="form-grid col3">
+              <div class="form-group">
+                <label>薪资下限 (K/月)</label>
+                <input
+                  type="number"
+                  id="f_salaryMin"
+                  placeholder="15"
+                  min="0"
+                />
+              </div>
+              <div class="form-group">
+                <label>薪资上限 (K/月)</label>
+                <input
+                  type="number"
+                  id="f_salaryMax"
+                  placeholder="25"
+                  min="0"
+                />
+              </div>
+              <div class="form-group">
+                <label>薪资结构</label>
+                <select id="f_salaryType">
+                  <option>13薪</option>
+                  <option>14薪</option>
+                  <option>15薪</option>
+                  <option>16薪</option>
+                  <option>年终奖另计</option>
+                  <option>不固定</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-grid" style="margin-top: 10px">
+              <div class="form-group">
+                <label>期权/股票</label>
+                <input
+                  type="text"
+                  id="f_equity"
+                  placeholder="例：期权 0.1%，4年兑现"
+                />
+              </div>
+              <div class="form-group">
+                <label>其他福利</label>
+                <input
+                  type="text"
+                  id="f_benefits"
+                  placeholder="例：五险一金、餐补、弹性"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">📅 事件记录</div>
+            <div id="eventsEditor"></div>
+            <button
+              class="btn btn-secondary btn-sm"
+              onclick="addEventRow()"
+              style="margin-top: 10px"
+            >
+              ＋ 添加事件
+            </button>
+          </div>
+
+          <div class="form-section">
+            <div class="form-section-title">⭐ 主观评价</div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>意向度（越高越想去）</label>
+                <div class="star-picker" id="intentPicker"></div>
+                <input type="hidden" id="f_intent" value="0" />
+              </div>
+              <div class="form-group">
+                <label>匹配度（岗位与我的契合）</label>
+                <div class="star-picker" id="matchPicker"></div>
+                <input type="hidden" id="f_match" value="0" />
+              </div>
+              <div class="form-group">
+                <label
+                  >公司文化印象
+                  <span class="range-label" id="cultureVal">3</span></label
+                >
+                <input
+                  type="range"
+                  id="f_culture"
+                  min="1"
+                  max="5"
+                  value="3"
+                  oninput="
+                    document.getElementById('cultureVal').textContent =
+                      this.value
+                  "
+                />
+              </div>
+              <div class="form-group">
+                <label
+                  >团队氛围印象
+                  <span class="range-label" id="teamVal">3</span></label
+                >
+                <input
+                  type="range"
+                  id="f_team"
+                  min="1"
+                  max="5"
+                  value="3"
+                  oninput="
+                    document.getElementById('teamVal').textContent = this.value
+                  "
+                />
+              </div>
+            </div>
+            <div class="form-grid col1" style="margin-top: 10px">
+              <div class="form-group">
+                <label>综合备注</label>
+                <textarea
+                  id="f_notes"
+                  placeholder="优点、顾虑、记得要问的问题…"
+                ></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeModal()">取消</button>
+          <button class="btn btn-primary" onclick="saveRecord()">
+            💾 保存
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 详情 Modal ── -->
+    <div class="modal-overlay" id="detailModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title" id="detailTitle">投递详情</span>
+          <button class="modal-close" onclick="closeDetail()">✕</button>
+        </div>
+        <div class="modal-body" id="detailBody"></div>
+        <div class="modal-footer">
+          <button class="btn btn-danger btn-sm" onclick="deleteFromDetail()">
+            🗑 删除
+          </button>
+          <button class="btn btn-secondary" onclick="closeDetail()">
+            关闭
+          </button>
+          <button class="btn btn-primary" onclick="editFromDetail()">
+            ✏️ 编辑
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WebDAV 同步 Modal ── -->
+    <div class="modal-overlay" id="syncModal">
+      <div class="modal">
+        <div class="modal-header">
+          <span class="modal-title">☁️ WebDAV 远程同步</span>
+          <button class="modal-close" onclick="closeSyncModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-section">
+            <div class="form-section-title">服务器配置</div>
+            <div class="form-grid col1">
+              <div class="form-group">
+                <label>WebDAV 地址（目录）</label>
+                <input
+                  type="url"
+                  id="dav_url"
+                  placeholder="https://dav.example.com/remote.php/dav/files/user/job-tracker/"
+                />
+              </div>
+              <div class="form-group">
+                <label>用户名</label>
+                <input
+                  type="text"
+                  id="dav_user"
+                  placeholder="username"
+                  autocomplete="off"
+                />
+              </div>
+              <div class="form-group">
+                <label>密码 / App Token</label>
+                <input
+                  type="password"
+                  id="dav_pass"
+                  placeholder="••••••••"
+                  autocomplete="new-password"
+                />
+              </div>
+            </div>
+            <p class="hint">
+              数据以 <code>job-tracker.json</code> 存储于指定目录。推荐使用
+              Nextcloud / Alist / Nginx WebDAV，需服务器支持 CORS。
+            </p>
+          </div>
+          <div class="sync-actions">
+            <button class="btn btn-secondary" onclick="davTest()">
+              🔗 测试连接
+            </button>
+            <button class="btn btn-success" onclick="davPush()">
+              ⬆️ 上传到云端
+            </button>
+            <button class="btn btn-warn" onclick="davPull()">
+              ⬇️ 从云端拉取
+            </button>
+          </div>
+          <div id="syncLog" class="sync-log"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" onclick="closeSyncModal()">
+            关闭
+          </button>
+          <button class="btn btn-primary" onclick="saveDavConfig()">
+            💾 保存配置
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <input
+      type="file"
+      id="importFile"
+      accept=".json"
+      style="display: none"
+      onchange="handleImport(event)"
+    />
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/data.js"></script>
+    <script src="js/webdav.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/modal.js"></script>
+    <script src="js/views.js"></script>
+    <script src="js/app.js"></script>
+  </body>
+</html>
