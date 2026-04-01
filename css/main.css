@@ -172,6 +172,17 @@ header {
   flex-shrink: 0;
 }
 
+.offline-notice {
+  margin: 10px 20px 0;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--surface2) 70%, transparent);
+  color: var(--text2);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
 /* ── Buttons ── */
 .btn {
   padding: 7px 16px;
@@ -1102,6 +1113,10 @@ canvas {
   }
   .header-right {
     gap: 6px;
+  }
+  .offline-notice {
+    margin: 10px 14px 0;
+    font-size: 0.75rem;
   }
   .charts-grid {
     grid-template-columns: 1fr;
