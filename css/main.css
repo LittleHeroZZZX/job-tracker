@@ -1427,11 +1427,11 @@ canvas {
   gap: 3px;
 }
 .cal-cell {
-  min-height: 76px;
+  min-height: 94px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 6px;
+  padding: 8px;
   cursor: pointer;
   transition:
     border-color 0.15s,
@@ -1474,21 +1474,21 @@ canvas {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text);
-  margin-bottom: 4px;
+  margin-bottom: 6px;
   line-height: 1;
 }
 .cal-chips {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 .cal-chip {
   display: flex;
   align-items: center;
-  gap: 3px;
-  font-size: 0.67rem;
+  gap: 4px;
+  font-size: 0.72rem;
   font-weight: 600;
-  padding: 2px 5px;
+  padding: 3px 6px;
   border-radius: 4px;
   overflow: hidden;
   white-space: nowrap;
@@ -1499,9 +1499,9 @@ canvas {
   flex-shrink: 0;
 }
 .cal-chip-more {
-  font-size: 0.67rem;
+  font-size: 0.72rem;
   color: var(--text2);
-  padding: 1px 4px;
+  padding: 2px 5px;
 }
 
 /* Calendar right panel */
@@ -1560,6 +1560,10 @@ canvas {
   flex-wrap: wrap;
   margin-bottom: 3px;
 }
+.cal-panel-evt-chip {
+  margin-left: auto;
+  flex-shrink: 0;
+}
 .cal-panel-company {
   font-weight: 700;
   font-size: 0.85rem;
@@ -1579,6 +1583,9 @@ canvas {
   .calendar-wrap {
     grid-template-columns: 1fr;
     height: auto;
+  }
+  .cal-cell {
+    min-height: 88px;
   }
   .cal-left {
     border-right: none;

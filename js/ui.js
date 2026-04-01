@@ -107,6 +107,36 @@ function confirmDelete(id) {
   toast("已删除", "info");
 }
 
+function confirmDeleteAll() {
+  if (!records.length) {
+    toast("暂无记录可删除", "info");
+    return;
+  }
+  if (!confirm(`确定删除全部 ${records.length} 条记录？此操作不可撤销。`)) {
+    return;
+  }
+
+  clearRecords();
+  renderStats();
+  renderTable();
+
+  if (document.getElementById("view-timeline").style.display !== "none") {
+    renderTimeline();
+  }
+  if (document.getElementById("view-calendar").style.display !== "none") {
+    renderCalendar();
+    const dayPanel = document.getElementById("calDayPanel");
+    if (dayPanel)
+      dayPanel.innerHTML =
+        '<div class="cal-day-empty">← 点击日期查看事件</div>';
+  }
+  if (document.getElementById("view-charts").style.display !== "none") {
+    renderCharts();
+  }
+
+  toast("已清空全部记录", "success");
+}
+
 /* ── Toast ── */
 function toast(msg, type = "info") {
   const el = document.createElement("div");

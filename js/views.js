@@ -201,7 +201,7 @@ function drawCalGrid() {
       .map((e) => {
         const et = getEventType(e.type);
         return `<div class="cal-chip" style="background:${et.color}22;color:${et.color};border-left:2px solid ${et.color}">
-        ${avatarHtml(e.record, 12)} <span>${et.label}</span>
+        ${avatarHtml(e.record, 16)} <span>${et.label}</span>
       </div>`;
       })
       .join("");
@@ -267,7 +267,7 @@ function renderDayPanel(dateStr) {
               ${avatarHtml(r, 22)}
               <span class="cal-panel-company">${esc(r.company)}</span>
               ${r.department ? `<span style="font-size:.75rem;color:var(--text2)">· ${esc(r.department)}</span>` : ""}
-              <span class="evt-chip" style="background:${et.color}22;color:${et.color};border:1px solid ${et.color}44;font-size:.7rem">${et.label}</span>
+              <span class="evt-chip cal-panel-evt-chip" style="background:${et.color}22;color:${et.color};border:1px solid ${et.color}44;font-size:.7rem">${et.label}</span>
             </div>
             <div class="cal-panel-position">${esc(r.position)}${r.city ? " · " + esc(r.city) : ""}</div>
             ${e.note ? `<div class="cal-panel-note">"${esc(e.note)}"</div>` : ""}

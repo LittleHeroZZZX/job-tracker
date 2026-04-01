@@ -141,6 +141,11 @@ function removeRecord(id) {
   saveRecords();
 }
 
+function clearRecords() {
+  records = [];
+  saveRecords();
+}
+
 /* ── 获取所有事件（跨记录打平） ── */
 function getAllEvents() {
   const all = [];
@@ -274,7 +279,11 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 function today() {
-  return new Date().toISOString().slice(0, 10);
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function dlBlob(blob, name) {
