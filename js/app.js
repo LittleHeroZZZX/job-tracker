@@ -8,21 +8,22 @@ window.addEventListener('DOMContentLoaded', () => {
   initTheme();
   initNavigation();
   initDropdowns();
+  updateAutoSyncUI();
 });
 
 /* ── 主题 ── */
 const THEME_KEY = 'job_tracker_theme';
 
 function initTheme() {
-  const saved = localStorage.getItem(THEME_KEY) || 'dark';
+  const saved = localStorage.getItem(THEME_KEY) || 'light';
   applyTheme(saved);
   document.getElementById('themeBtn').addEventListener('click', e => {
     e.stopPropagation();
     document.getElementById('themeDropdown').classList.toggle('open');
   });
-  document.querySelectorAll('#themeDropdown [data-theme]').forEach(btn => {
+  document.querySelectorAll('#themeDropdown [data-set-theme]').forEach(btn => {
     btn.addEventListener('click', () => {
-      applyTheme(btn.dataset.theme);
+      applyTheme(btn.dataset.setTheme);
       document.getElementById('themeDropdown').classList.remove('open');
     });
   });

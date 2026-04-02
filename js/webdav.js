@@ -1,7 +1,10 @@
 /* ── webdav.js: WebDAV 远程同步 ── */
 'use strict';
 
-const DAV_CONFIG_KEY = 'job_tracker_dav';
+const DAV_CONFIG_KEY   = 'job_tracker_dav';
+const AUTO_SYNC_KEY    = 'job_tracker_dav_autosync';
+let _suppressAutoSync  = false;
+let _autoSyncTimer     = null;
 
 function loadDavConfig() {
   try { return JSON.parse(localStorage.getItem(DAV_CONFIG_KEY)) || {}; } catch { return {}; }
@@ -16,14 +19,74 @@ function saveDavConfig() {
   if (!cfg.url) { toast('请填写 WebDAV 地址', 'error'); return; }
   localStorage.setItem(DAV_CONFIG_KEY, JSON.stringify(cfg));
   toast('配置已保存 ✅', 'success');
+  updateAutoSyncUI();
 }
 
+/* ── 自动同步 ── */
+function isAutoSyncEnabled() {
+  return localStorage.getItem(AUTO_SYNC_KEY) !== 'false';
+}
+
+function toggleAutoSync(enabled) {
+  localStorage.setItem(AUTO_SYNC_KEY, enabled ? 'true' : 'false');
+  updateAutoSyncUI();
+  toast(enabled ? '已开启自动同步 ☁️' : '已关闭自动同步', enabled ? 'success' : 'info');
+}
+
+function updateAutoSyncUI() {
+  const cfg = loadDavConfig();
+  const hasConfig = !!(cfg.url);
+  const enabled   = isAutoSyncEnabled();
+
+  const toggle = document.getElementById('autoSyncToggle');
+  if (toggle) {
+    toggle.checked  = enabled;
+    toggle.disabled = !hasConfig;
+  }
+  const label = document.getElementById('autoSyncLabel');
+  if (label) label.style.opacity = hasConfig ? '1' : '0.5';
+
+  // Header indicator dot
+  const dot = document.getElementById('autoSyncDot');
+  if (dot) dot.style.display = (hasConfig && enabled) ? 'inline-block' : 'none';
+}
+
+function autoSyncIfEnabled() {
+  if (_suppressAutoSync) return;
+  const cfg = loadDavConfig();
+  if (!cfg.url) return;
+  if (!isAutoSyncEnabled()) return;
+
+  clearTimeout(_autoSyncTimer);
+  _autoSyncTimer = setTimeout(async () => {
+    try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (cfg.user || cfg.pass) {
+        headers['Authorization'] = 'Basic ' + btoa(`${cfg.user}:${cfg.pass}`);
+      }
+      let base = cfg.url;
+      if (!base.endsWith('/')) base += '/';
+      const body = JSON.stringify(records, null, 2);
+      const res = await fetch(base + 'job-tracker.json', { method: 'PUT', headers, body });
+      if (res.ok || res.status === 201 || res.status === 204) {
+        toast('已自动同步 ☁️', 'success');
+      } else {
+        toast(`自动同步失败 HTTP ${res.status}`, 'error');
+      }
+    } catch (err) {
+      toast(`自动同步失败：${err.message}`, 'error');
+    }
+  }, 1500);
+}
+
+/* ── Modal ── */
 function openSyncModal() {
   const cfg = loadDavConfig();
   document.getElementById('dav_url').value  = cfg.url  || '';
   document.getElementById('dav_user').value = cfg.user || '';
   document.getElementById('dav_pass').value = cfg.pass || '';
   document.getElementById('syncLog').textContent = '';
+  updateAutoSyncUI();
   document.getElementById('syncModal').classList.add('open');
 }
 
@@ -38,6 +101,18 @@ function syncLog(msg, cls = '') {
   line.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
   el.appendChild(line);
   el.scrollTop = el.scrollHeight;
+}
+
+/* ── 从表单字段读取（不依赖已保存配置） ── */
+function davFormConfig() {
+  const url  = document.getElementById('dav_url').value.trim();
+  const user = document.getElementById('dav_user').value.trim();
+  const pass = document.getElementById('dav_pass').value;
+  const headers = { 'Content-Type': 'application/json' };
+  if (user || pass) headers['Authorization'] = 'Basic ' + btoa(`${user}:${pass}`);
+  let base = url;
+  if (base && !base.endsWith('/')) base += '/';
+  return { url, user, pass, headers, fileUrl: base ? base + 'job-tracker.json' : '' };
 }
 
 function davHeaders() {
@@ -55,15 +130,13 @@ function davFileUrl(cfg) {
   return base + 'job-tracker.json';
 }
 
+/* ── 测试连接（使用表单当前值，无需保存） ── */
 async function davTest() {
-  const { cfg, headers } = davHeaders();
-  if (!cfg.url) { syncLog('❌ 未填写 WebDAV 地址', 'log-err'); return; }
+  const { url, headers, fileUrl } = davFormConfig();
+  if (!url) { syncLog('❌ 未填写 WebDAV 地址', 'log-err'); return; }
   syncLog('正在测试连接…', 'log-info');
   try {
-    const res = await fetch(davFileUrl(cfg), {
-      method: 'HEAD',
-      headers,
-    });
+    const res = await fetch(fileUrl, { method: 'HEAD', headers });
     if (res.ok || res.status === 404) {
       syncLog(`✅ 连接成功（HTTP ${res.status}）`, 'log-ok');
     } else if (res.status === 401) {
@@ -126,12 +199,28 @@ async function davPull() {
       syncLog(`合并完成，新增 ${added} 条`, 'log-info');
     }
 
+    // 拉取后保存，抑制自动回推
+    _suppressAutoSync = true;
     saveRecords();
+    _suppressAutoSync = false;
+
     renderStats();
     renderTable();
     syncLog(`✅ 拉取成功，共 ${records.length} 条`, 'log-ok');
     toast('已从云端同步 ✅', 'success');
   } catch (err) {
-    syncLog(`❌ 拉取错误：${err.message}`, 'log-err');
+    const msg = err.message || '';
+    if (msg === 'Failed to fetch' || err instanceof TypeError) {
+      syncLog(
+        '❌ 拉取失败（网络/CORS 错误）\n' +
+        '  可能原因：WebDAV 服务器将请求重定向到不支持 CORS 的 CDN\n' +
+        '  解决方案：\n' +
+        '  · 在 WebDAV 代理上配置 CORS 响应头，确保服务器直接返回数据而非跳转\n' +
+        '  · 或使用支持 CORS 的 WebDAV 服务（如 Nextcloud、Alist）',
+        'log-err'
+      );
+    } else {
+      syncLog(`❌ 拉取错误：${msg}`, 'log-err');
+    }
   }
 }

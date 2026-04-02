@@ -115,6 +115,7 @@ function loadRecords() {
 
 function saveRecords() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  if (typeof autoSyncIfEnabled === 'function') autoSyncIfEnabled();
 }
 
 function getRecord(id) {

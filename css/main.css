@@ -781,6 +781,67 @@ td {
   font-size: 0.8em;
 }
 
+/* Auto-sync indicator dot */
+.auto-sync-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--success);
+  margin-left: 5px;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+}
+
+/* Auto-sync toggle row */
+.sync-autosync-row {
+  margin: 12px 0 4px;
+}
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--text);
+  user-select: none;
+}
+.toggle-label input[type="checkbox"] {
+  display: none;
+}
+.toggle-track {
+  position: relative;
+  width: 36px;
+  height: 20px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.toggle-label input:checked ~ .toggle-track {
+  background: var(--success);
+  border-color: var(--success);
+}
+.toggle-label input:disabled ~ .toggle-track {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.2s;
+}
+.toggle-label input:checked ~ .toggle-track .toggle-thumb {
+  left: 18px;
+}
+
 /* WebDAV */
 .sync-actions {
   display: flex;
