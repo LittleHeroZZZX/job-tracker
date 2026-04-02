@@ -21,9 +21,9 @@ function initTheme() {
     e.stopPropagation();
     document.getElementById('themeDropdown').classList.toggle('open');
   });
-  document.querySelectorAll('#themeDropdown [data-set-theme]').forEach(btn => {
+  document.querySelectorAll('#themeDropdown [data-theme], #themeDropdown [data-set-theme]').forEach(btn => {
     btn.addEventListener('click', () => {
-      applyTheme(btn.dataset.setTheme);
+      applyTheme(btn.dataset.theme || btn.dataset.setTheme);
       document.getElementById('themeDropdown').classList.remove('open');
     });
   });
