@@ -582,8 +582,15 @@ td {
   max-width: 680px;
   max-height: 90vh;
   overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
   box-shadow: var(--shadow);
   animation: slideUp 0.22s ease;
+}
+.modal::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
 }
 @keyframes slideUp {
   from {

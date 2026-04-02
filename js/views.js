@@ -26,7 +26,7 @@ function renderTimeline() {
   const todayStr = today();
 
   el.innerHTML =
-    `<div style="max-width:720px">` +
+    `<div style="max-width:720px;margin:0 auto">` +
     Object.entries(groups)
       .sort(([a], [b]) => (b > a ? 1 : -1))
       .map(([date, evts]) => {
@@ -76,8 +76,8 @@ function renderTlEvent(e) {
           <div class="tl-item-header">
             <div class="tl-role-line">
               <span class="tl-company">${esc(r.company)}</span>
-              ${r.department ? `<span class="tl-position">· ${esc(r.department)}</span>` : ""}
-              <span class="tl-position">· ${esc(r.position)}</span>
+              ${r.department ? `<span class="tl-position"> ${esc(r.department)}</span>` : ""}
+              <span class="tl-position">${r.department ? " · " : " "}${esc(r.position)}</span>
             </div>
             <span class="evt-chip" style="background:${et.color}22;color:${et.color};border:1px solid ${et.color}44">${et.label}</span>
           </div>
