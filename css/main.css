@@ -2,7 +2,7 @@
    Themes
 ══════════════════════════════════════════════════════ */
 :root,
-[data-theme="dark"] {
+html[data-theme="dark"] {
   --bg: #0f1117;
   --surface: #1a1d27;
   --surface2: #22263a;
@@ -18,7 +18,7 @@
   --radius: 12px;
 }
 
-[data-theme="light"] {
+html[data-theme="light"] {
   --bg: #f0f4f8;
   --surface: #ffffff;
   --surface2: #f7f9fc;
@@ -34,7 +34,7 @@
   --radius: 12px;
 }
 
-[data-theme="ocean"] {
+html[data-theme="ocean"] {
   --bg: #071523;
   --surface: #0c2137;
   --surface2: #102d4a;
@@ -50,7 +50,7 @@
   --radius: 12px;
 }
 
-[data-theme="purple"] {
+html[data-theme="purple"] {
   --bg: #100522;
   --surface: #1c0b3a;
   --surface2: #271450;
