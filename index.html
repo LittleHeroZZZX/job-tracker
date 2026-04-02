@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="zh-CN" data-theme="light">
+<html lang="zh-CN" data-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,14 +24,14 @@
             🎨
           </button>
           <div class="theme-dropdown" id="themeDropdown">
-            <button data-set-theme="dark">🌙 深色</button>
-            <button data-set-theme="light">☀️ 浅色</button>
-            <button data-set-theme="ocean">🌊 海洋</button>
-            <button data-set-theme="purple">💜 紫调</button>
+            <button data-theme="dark">🌙 深色</button>
+            <button data-theme="light">☀️ 浅色</button>
+            <button data-theme="ocean">🌊 海洋</button>
+            <button data-theme="purple">💜 紫调</button>
           </div>
         </div>
         <button class="btn btn-secondary" onclick="openSyncModal()">
-          ☁️ 同步<span id="autoSyncDot" class="auto-sync-dot" style="display:none" title="自动同步已开启"></span>
+          ☁️ 同步
         </button>
         <button class="btn btn-secondary" onclick="importData()">
           📥 导入
@@ -509,13 +509,6 @@
               数据以 <code>job-tracker.json</code> 存储于指定目录。推荐使用
               Nextcloud / Alist / Nginx WebDAV，需服务器支持 CORS。
             </p>
-          </div>
-          <div class="sync-autosync-row">
-            <label id="autoSyncLabel" class="toggle-label">
-              <input type="checkbox" id="autoSyncToggle" onchange="toggleAutoSync(this.checked)" />
-              <span class="toggle-track"><span class="toggle-thumb"></span></span>
-              修改后自动同步到云端
-            </label>
           </div>
           <div class="sync-actions">
             <button class="btn btn-secondary" onclick="davTest()">

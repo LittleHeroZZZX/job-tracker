@@ -74,9 +74,11 @@ function renderTlEvent(e) {
         ${avatarHtml(r, 32)}
         <div class="tl-item-body">
           <div class="tl-item-header">
-            <span class="tl-company">${esc(r.company)}</span>
-            ${r.department ? `<span class="tl-position">· ${esc(r.department)}</span>` : ""}
-            <span class="tl-position">· ${esc(r.position)}</span>
+            <div class="tl-role-line">
+              <span class="tl-company">${esc(r.company)}</span>
+              ${r.department ? `<span class="tl-position">· ${esc(r.department)}</span>` : ""}
+              <span class="tl-position">· ${esc(r.position)}</span>
+            </div>
             <span class="evt-chip" style="background:${et.color}22;color:${et.color};border:1px solid ${et.color}44">${et.label}</span>
           </div>
           ${e.note ? `<div class="tl-note">"${esc(e.note)}"</div>` : ""}
