@@ -826,6 +826,11 @@ td {
   max-width: 1000px;
 }
 
+#view-timeline .view-content {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
 /* Timeline */
 .tl-month-group {
   margin-bottom: 32px;
@@ -1270,7 +1275,7 @@ canvas {
 .tl-role-line {
   display: flex;
   align-items: center;
-  gap: 0;
+  gap: 8px;
   flex-wrap: wrap;
   min-width: 0;
   text-align: left;
@@ -1282,6 +1287,12 @@ canvas {
 .tl-position {
   font-size: 0.8rem;
   color: var(--text2);
+}
+.tl-sep {
+  font-size: 0.8rem;
+  color: var(--text2);
+  line-height: 1;
+  transform: translateY(-0.5px);
 }
 .tl-note {
   font-size: 0.78rem;
