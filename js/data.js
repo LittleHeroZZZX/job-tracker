@@ -98,12 +98,25 @@ function getCompanyDomain(r) {
   );
 }
 
-function faviconUrl(domain) {
-  return `https://${domain}/favicon.ico`;
-}
+/* ── 多源 favicon 降级链（按清晰度从高到低） ── */
+const FAVICON_SOURCES = [
+  d => `https://logo.clearbit.com/${d}`,
+  d => `https://${d}/apple-touch-icon.png`,
+  d => `https://${d}/apple-touch-icon-precomposed.png`,
+  d => `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`,
+  d => `https://img.logo.dev/${d}?token=pk_IsGXuD4nTdCNiHvLCLfRYQ`,
+  d => `https://${d}/favicon.ico`,
+];
 
-function logoDevUrl(domain) {
-  return `https://img.logo.dev/${domain}?token=pk_IsGXuD4nTdCNiHvLCLfRYQ`;
+function nextFavicon(img) {
+  const domain = img.dataset.domain;
+  const idx = parseInt(img.dataset.fi || '0') + 1;
+  if (idx < FAVICON_SOURCES.length) {
+    img.dataset.fi = idx;
+    img.src = FAVICON_SOURCES[idx](domain);
+  } else {
+    img.setAttribute('data-error', '1');
+  }
 }
 
 /* ── CRUD ── */
@@ -372,7 +385,7 @@ function statusDotColor(status) {
   return map[status] || "#8892b0";
 }
 
-/* ── 公司头像 HTML（favicon → logo.dev → 字母降级） ── */
+/* ── 公司头像 HTML（多源 favicon → 字母降级） ── */
 function avatarHtml(r, size = 34) {
   const domain = getCompanyDomain(r);
   const bg = avatarColor(r.company);
@@ -381,11 +394,11 @@ function avatarHtml(r, size = 34) {
   const fs = Math.round(size * 0.41);
 
   if (domain) {
-    const fallback = logoDevUrl(domain).replace(/'/g, "\\'");
     return `<div class="co-avatar" style="width:${size}px;height:${size}px;border-radius:${radius}px;background:${bg}">
       <span class="av-letter" style="font-size:${fs}px">${letter}</span>
-      <img class="av-img" src="${faviconUrl(domain)}" alt="${letter}"
-           onerror="this.src='${fallback}';this.onerror=function(){this.setAttribute('data-error','1')}" />
+      <img class="av-img" src="${FAVICON_SOURCES[0](domain)}" alt="${letter}"
+           data-domain="${esc(domain)}" data-fi="0"
+           onerror="nextFavicon(this)" />
     </div>`;
   }
   return `<div class="co-avatar" style="width:${size}px;height:${size}px;border-radius:${radius}px;background:${bg}">
