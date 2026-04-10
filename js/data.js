@@ -98,9 +98,12 @@ function getCompanyDomain(r) {
   );
 }
 
-function logoUrl(r) {
-  const d = getCompanyDomain(r);
-  return d ? `https://img.logo.dev/${d}?token=pk_IsGXuD4nTdCNiHvLCLfRYQ` : null;
+function faviconUrl(domain) {
+  return `https://${domain}/favicon.ico`;
+}
+
+function logoDevUrl(domain) {
+  return `https://img.logo.dev/${domain}?token=pk_IsGXuD4nTdCNiHvLCLfRYQ`;
 }
 
 /* ── CRUD ── */
@@ -369,19 +372,20 @@ function statusDotColor(status) {
   return map[status] || "#8892b0";
 }
 
-/* ── 公司头像 HTML（支持 Logo + 字母降级） ── */
+/* ── 公司头像 HTML（favicon → logo.dev → 字母降级） ── */
 function avatarHtml(r, size = 34) {
-  const url = logoUrl(r);
+  const domain = getCompanyDomain(r);
   const bg = avatarColor(r.company);
   const letter = esc((r.company || "?")[0].toUpperCase());
   const radius = Math.round(size * 0.26);
   const fs = Math.round(size * 0.41);
 
-  if (url) {
+  if (domain) {
+    const fallback = logoDevUrl(domain).replace(/'/g, "\\'");
     return `<div class="co-avatar" style="width:${size}px;height:${size}px;border-radius:${radius}px;background:${bg}">
       <span class="av-letter" style="font-size:${fs}px">${letter}</span>
-      <img class="av-img" src="${url}" alt="${letter}"
-           onerror="this.setAttribute('data-error','1')" />
+      <img class="av-img" src="${faviconUrl(domain)}" alt="${letter}"
+           onerror="this.src='${fallback}';this.onerror=function(){this.setAttribute('data-error','1')}" />
     </div>`;
   }
   return `<div class="co-avatar" style="width:${size}px;height:${size}px;border-radius:${radius}px;background:${bg}">
