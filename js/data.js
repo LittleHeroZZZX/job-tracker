@@ -65,46 +65,65 @@ function getEventType(type) {
   return EVENT_TYPES[type] || EVENT_TYPES.other;
 }
 
-/* ── 已知招聘平台域名（链接域名不用于公司图标） ── */
+/* ── 已知第三方招聘平台域名（链接域名不用于公司图标） ── */
 const PLATFORM_HOSTS = new Set([
-  "zhipin.com",
-  "boss.zhipin.com",
-  "lagou.com",
-  "zhaopin.com",
-  "51job.com",
-  "liepin.com",
-  "linkedin.com",
-  "twitter.com",
-  "x.com",
-  "maimai.cn",
-  "weixin.qq.com",
-  "mp.weixin.qq.com",
-  "github.com", // 招聘帖子链接，但公司 logo 用 company 名来查
+  "zhipin.com", "boss.zhipin.com",
+  "lagou.com", "zhaopin.com", "51job.com", "liepin.com",
+  "linkedin.com", "twitter.com", "x.com",
+  "maimai.cn", "weixin.qq.com", "mp.weixin.qq.com",
+  "github.com",
+  "mokahr.com", "app.mokahr.com",   // 磨刀招聘
+  "zhiye.com",                       // 科大讯飞招聘平台
+  "breezy.hr", "lever.co", "greenhouse.io", "workday.com",
+  "smartrecruiters.com", "taleo.net", "icims.com",
 ]);
+
+// 公司自建招聘站点常见子域名前缀（去掉后得到公司根域名）
+const RECRUIT_PREFIX_RE = /^(?:jobs?|careers?|campus(?:-[a-z]+)*|talent|recruit(?:ing)?|hr|join|zhaopin|campus-talent|campus-hr|apply)\./;
+
+/* 从任意输入（纯域名或完整 URL）提取根域名，并剥离招聘子域前缀 */
+function extractRootDomain(input) {
+  if (!input) return null;
+  let host;
+  try {
+    const withProto = /^https?:\/\//i.test(input) ? input : "https://" + input;
+    host = new URL(withProto).hostname;
+  } catch {
+    host = input.split(/[/?#]/)[0];
+  }
+  host = host.replace(/^www\./, "");
+  host = host.replace(RECRUIT_PREFIX_RE, "");
+  return host || null;
+}
 
 function domainFromLink(link) {
   if (!link) return null;
   try {
     const host = new URL(link).hostname.replace(/^www\./, "");
-    return PLATFORM_HOSTS.has(host) ? null : host;
+    // 精确匹配或父域名匹配已知平台
+    if (PLATFORM_HOSTS.has(host)) return null;
+    const parent = host.split(".").slice(-2).join(".");
+    if (PLATFORM_HOSTS.has(parent)) return null;
+    return extractRootDomain(link);
   } catch {
     return null;
   }
 }
 
 function getCompanyDomain(r) {
-  return (
-    r.domain || domainFromLink(r.link) || COMPANY_DOMAINS[r.company] || null
-  );
+  // r.domain 字段可能是完整 URL，需提取根域名
+  const fromField = r.domain ? extractRootDomain(r.domain) : null;
+  return fromField || domainFromLink(r.link) || COMPANY_DOMAINS[r.company] || null;
 }
 
-/* ── 多源 favicon 降级链（按清晰度从高到低） ── */
+/* ── 多源 favicon 降级链 ──
+   移除 Clearbit（国内被墙）和 Google faviconV2（CORS 问题）
+   优先 apple-touch-icon（高清）→ logo.dev → DuckDuckGo → favicon.ico */
 const FAVICON_SOURCES = [
-  d => `https://logo.clearbit.com/${d}`,
   d => `https://${d}/apple-touch-icon.png`,
   d => `https://${d}/apple-touch-icon-precomposed.png`,
-  d => `https://t2.gstatic.com/faviconV2?client=SOCIAL&type=FAVICON&fallback_opts=TYPE,SIZE,URL&url=https://${d}&size=128`,
   d => `https://img.logo.dev/${d}?token=pk_IsGXuD4nTdCNiHvLCLfRYQ`,
+  d => `https://icons.duckduckgo.com/ip3/${d}.ico`,
   d => `https://${d}/favicon.ico`,
 ];
 
