@@ -661,6 +661,21 @@ td {
   padding-bottom: 7px;
   border-bottom: 1px solid var(--border);
 }
+.form-section-toggle {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+.form-section-toggle:hover { opacity: 0.75; }
+.section-arrow {
+  font-size: 0.68rem;
+  font-weight: 600;
+  opacity: 0.7;
+  letter-spacing: 0;
+  text-transform: none;
+}
 .form-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1567,6 +1582,19 @@ canvas {
   color: var(--text2);
   font-size: 0.85rem;
   padding: 30px 0;
+}
+.cal-day-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.day-stat-chip {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  white-space: nowrap;
 }
 .cal-panel-event {
   display: flex;

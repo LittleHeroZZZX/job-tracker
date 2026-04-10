@@ -314,54 +314,59 @@
           </div>
 
           <div class="form-section">
-            <div class="form-section-title">💰 薪资与福利</div>
-            <div class="form-grid col3">
-              <div class="form-group">
-                <label>薪资下限 (K/月)</label>
-                <input
-                  type="number"
-                  id="f_salaryMin"
-                  placeholder="15"
-                  min="0"
-                />
-              </div>
-              <div class="form-group">
-                <label>薪资上限 (K/月)</label>
-                <input
-                  type="number"
-                  id="f_salaryMax"
-                  placeholder="25"
-                  min="0"
-                />
-              </div>
-              <div class="form-group">
-                <label>薪资结构</label>
-                <select id="f_salaryType">
-                  <option>13薪</option>
-                  <option>14薪</option>
-                  <option>15薪</option>
-                  <option>16薪</option>
-                  <option>年终奖另计</option>
-                  <option>不固定</option>
-                </select>
-              </div>
+            <div class="form-section-title form-section-toggle" onclick="toggleSalarySection()">
+              💰 薪资与福利
+              <span id="salarySectionArrow" class="section-arrow">▶ 展开</span>
             </div>
-            <div class="form-grid" style="margin-top: 10px">
-              <div class="form-group">
-                <label>期权/股票</label>
-                <input
-                  type="text"
-                  id="f_equity"
-                  placeholder="例：期权 0.1%，4年兑现"
-                />
+            <div id="salarySectionBody" style="display:none">
+              <div class="form-grid col3">
+                <div class="form-group">
+                  <label>薪资下限 (K/月)</label>
+                  <input
+                    type="number"
+                    id="f_salaryMin"
+                    placeholder="15"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>薪资上限 (K/月)</label>
+                  <input
+                    type="number"
+                    id="f_salaryMax"
+                    placeholder="25"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>薪资结构</label>
+                  <select id="f_salaryType">
+                    <option>13薪</option>
+                    <option>14薪</option>
+                    <option>15薪</option>
+                    <option>16薪</option>
+                    <option>年终奖另计</option>
+                    <option>不固定</option>
+                  </select>
+                </div>
               </div>
-              <div class="form-group">
-                <label>其他福利</label>
-                <input
-                  type="text"
-                  id="f_benefits"
-                  placeholder="例：五险一金、餐补、弹性"
-                />
+              <div class="form-grid" style="margin-top: 10px">
+                <div class="form-group">
+                  <label>期权/股票</label>
+                  <input
+                    type="text"
+                    id="f_equity"
+                    placeholder="例：期权 0.1%，4年兑现"
+                  />
+                </div>
+                <div class="form-group">
+                  <label>其他福利</label>
+                  <input
+                    type="text"
+                    id="f_benefits"
+                    placeholder="例：五险一金、餐补、弹性"
+                  />
+                </div>
               </div>
             </div>
           </div>

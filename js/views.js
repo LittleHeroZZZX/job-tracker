@@ -255,8 +255,19 @@ function renderDayPanel(dateStr) {
     return;
   }
 
+  // Count by event type, only non-zero
+  const typeCounts = {};
+  evts.forEach(e => { typeCounts[e.type] = (typeCounts[e.type] || 0) + 1; });
+  const statsHtml = Object.entries(typeCounts)
+    .map(([type, n]) => {
+      const et = getEventType(type);
+      return `<span class="day-stat-chip" style="background:${et.color}22;color:${et.color};border:1px solid ${et.color}33">${et.label} ×${n}</span>`;
+    })
+    .join('');
+
   panel.innerHTML = `
     <div class="cal-panel-header">${dayLabel} <span style="color:var(--text2);font-size:.8rem">${evts.length}件</span></div>
+    <div class="cal-day-stats">${statsHtml}</div>
     ${evts
       .map((e) => {
         const r = e.record;

@@ -40,6 +40,15 @@ function setStars(pickerId, fieldId, val) {
   highlightStars(pickerId, val);
 }
 
+/* ── Salary section toggle ── */
+function toggleSalarySection(forceOpen) {
+  const body  = document.getElementById('salarySectionBody');
+  const arrow = document.getElementById('salarySectionArrow');
+  const open  = forceOpen !== undefined ? forceOpen : body.style.display === 'none';
+  body.style.display  = open ? '' : 'none';
+  arrow.textContent   = open ? '▲ 收起' : '▶ 展开';
+}
+
 /* ── Channel "other" ── */
 function toggleChannelOther(sel) {
   const other = document.getElementById("f_channelOther");
@@ -163,6 +172,10 @@ function openModal(id) {
   // Stars
   setStars("intentPicker", "f_intent", r ? r.intent || 0 : 0);
   setStars("matchPicker", "f_match", r ? r.match || 0 : 0);
+
+  // Salary section: expand only if record has salary data
+  const hasSalary = !!(r && (r.salaryMin || r.salaryMax || r.equity || r.benefits));
+  toggleSalarySection(hasSalary);
 
   // Events — pre-populate with apply event if new record
   const initEvents = r
