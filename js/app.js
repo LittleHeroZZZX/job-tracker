@@ -9,6 +9,8 @@ window.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   initDropdowns();
   updateAutoSyncUI();
+  // 页面加载后自动从云端拉取最新数据
+  autoSyncOnStartup();
 });
 
 /* ── 主题 ── */

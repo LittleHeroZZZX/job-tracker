@@ -5,6 +5,7 @@ const DAV_CONFIG_KEY   = 'job_tracker_dav';
 const AUTO_SYNC_KEY    = 'job_tracker_dav_autosync';
 let _suppressAutoSync  = false;
 let _autoSyncTimer     = null;
+let _startupSyncDone   = false;
 
 function loadDavConfig() {
   try { return JSON.parse(localStorage.getItem(DAV_CONFIG_KEY)) || {}; } catch { return {}; }
@@ -130,6 +131,92 @@ function davFileUrl(cfg) {
   return base + 'job-tracker.json';
 }
 
+/* ── 基于 updatedAt 时间戳的智能合并 ── */
+function mergeRecords(local, remote) {
+  const merged = new Map();
+  let added = 0, updated = 0;
+
+  local.forEach(r => merged.set(r.id, { ...r }));
+
+  remote.forEach(r => {
+    if (!r.id) return;
+    if (!merged.has(r.id)) {
+      merged.set(r.id, { ...r });
+      added++;
+    } else {
+      const localR = merged.get(r.id);
+      const localTime  = new Date(localR.updatedAt || localR.createdAt || 0).getTime();
+      const remoteTime = new Date(r.updatedAt      || r.createdAt      || 0).getTime();
+      if (remoteTime > localTime) {
+        merged.set(r.id, { ...r });
+        updated++;
+      }
+    }
+  });
+
+  // 保持按创建时间降序排列（与 addRecord 的 unshift 一致）
+  const result = [...merged.values()].sort((a, b) => {
+    const ta = new Date(a.createdAt || 0).getTime();
+    const tb = new Date(b.createdAt || 0).getTime();
+    return tb - ta;
+  });
+
+  return { records: result, added, updated };
+}
+
+/* ── 静默拉取并合并（启动 / 推送前使用） ── */
+async function davSilentPull(logFn) {
+  const cfg = loadDavConfig();
+  if (!cfg.url) return null;
+
+  const headers = { 'Content-Type': 'application/json' };
+  if (cfg.user || cfg.pass) {
+    headers['Authorization'] = 'Basic ' + btoa(`${cfg.user}:${cfg.pass}`);
+  }
+
+  try {
+    const res = await fetch(davFileUrl(cfg), { method: 'GET', headers });
+    if (res.status === 404) { logFn && logFn('云端暂无数据，将直接上传', 'log-info'); return null; }
+    if (!res.ok)            { logFn && logFn(`⚠️ 获取云端数据失败 HTTP ${res.status}`, 'log-info'); return null; }
+
+    const remote = await res.json();
+    if (!Array.isArray(remote)) return null;
+
+    const { records: merged, added, updated } = mergeRecords(records, remote);
+
+    if (added > 0 || updated > 0) {
+      _suppressAutoSync = true;
+      records = merged;
+      saveRecords();
+      _suppressAutoSync = false;
+      renderStats();
+      renderTable();
+    }
+
+    return { added, updated };
+  } catch (err) {
+    logFn && logFn(`⚠️ 无法连接云端（${err.message}）`, 'log-info');
+    return null;
+  }
+}
+
+/* ── 启动时自动同步（拉取） ── */
+async function autoSyncOnStartup() {
+  if (_startupSyncDone) return;
+  _startupSyncDone = true;
+  if (!isAutoSyncEnabled()) return;
+  const cfg = loadDavConfig();
+  if (!cfg.url) return;
+
+  const result = await davSilentPull();
+  if (result && (result.added > 0 || result.updated > 0)) {
+    const parts = [];
+    if (result.added   > 0) parts.push(`新增 ${result.added} 条`);
+    if (result.updated > 0) parts.push(`更新 ${result.updated} 条`);
+    toast(`已从云端同步：${parts.join('，')} ☁️`, 'success');
+  }
+}
+
 /* ── 测试连接（使用表单当前值，无需保存） ── */
 async function davTest() {
   const { url, headers, fileUrl } = davFormConfig();
@@ -152,6 +239,16 @@ async function davTest() {
 async function davPush() {
   const { cfg, headers } = davHeaders();
   if (!cfg.url) { syncLog('❌ 未填写 WebDAV 地址', 'log-err'); return; }
+
+  // 上传前先拉取合并，避免覆盖云端更新
+  syncLog('🔄 正在检查云端最新数据…', 'log-info');
+  const mergeResult = await davSilentPull(syncLog);
+  if (mergeResult && (mergeResult.added > 0 || mergeResult.updated > 0)) {
+    syncLog(`已合并云端数据：新增 ${mergeResult.added} 条，更新 ${mergeResult.updated} 条`, 'log-info');
+  } else if (mergeResult !== null) {
+    syncLog('本地与云端一致，无冲突', 'log-info');
+  }
+
   syncLog(`⬆️ 正在上传 ${records.length} 条记录…`, 'log-info');
   try {
     const body = JSON.stringify(records, null, 2);
@@ -183,20 +280,23 @@ async function davPull() {
     const remote = await res.json();
     if (!Array.isArray(remote)) { syncLog('❌ 云端数据格式不正确', 'log-err'); return; }
 
-    const mode = records.length === 0
-      ? 'replace'
-      : confirm(`本地有 ${records.length} 条，云端有 ${remote.length} 条。\n\n确定 → 合并（去重）\n取消 → 用云端覆盖本地`)
-        ? 'merge' : 'replace';
-
-    if (mode === 'replace') {
+    if (records.length === 0) {
+      // 本地为空，直接用云端
       records = remote;
+      syncLog(`直接使用云端数据，共 ${remote.length} 条`, 'log-info');
     } else {
-      const existIds = new Set(records.map(r => r.id));
-      let added = 0;
-      remote.forEach(r => {
-        if (r.id && !existIds.has(r.id)) { records.push(r); added++; }
-      });
-      syncLog(`合并完成，新增 ${added} 条`, 'log-info');
+      const replace = confirm(
+        `本地有 ${records.length} 条，云端有 ${remote.length} 条。\n\n` +
+        `确定 → 智能合并（按时间戳解决冲突）\n取消 → 用云端完全覆盖本地`
+      );
+      if (!replace) {
+        records = remote;
+        syncLog(`已用云端数据覆盖本地，共 ${remote.length} 条`, 'log-info');
+      } else {
+        const { records: merged, added, updated } = mergeRecords(records, remote);
+        records = merged;
+        syncLog(`智能合并完成：新增 ${added} 条，冲突更新 ${updated} 条，共 ${records.length} 条`, 'log-info');
+      }
     }
 
     // 拉取后保存，抑制自动回推
