@@ -274,7 +274,7 @@ function openDetail(id) {
     { label: "HR面", done: r.interviewRound === "5" },
     { label: "Offer", done: r.status === "Offer" },
   ];
-  const isReject = r.status === "已拒绝";
+  const isReject = ["简历挂", "已拒绝"].includes(r.status);
   const progressHtml = `
     <div class="progress-mini">
       ${steps.map((s) => `<div class="step-dot ${s.done ? (isReject ? "reject" : r.status === "Offer" ? "offer" : "done") : ""}" title="${s.label}"></div>`).join("")}
