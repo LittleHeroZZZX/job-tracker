@@ -533,6 +533,20 @@ td {
   border: 1px solid rgba(72, 176, 241, 0.3);
 }
 
+.quick-status {
+  min-width: 84px;
+  padding: 4px 8px;
+  border-radius: 20px;
+  font: inherit;
+  font-size: 0.73rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.quick-status:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 .stars {
   letter-spacing: 1px;
   font-size: 13px;

@@ -79,7 +79,15 @@ function renderTable() {
         </div>
       </td>
       <td style="color:var(--text2);font-size:.8rem;white-space:nowrap">${r.applyDate || "—"}</td>
-      <td>${statusBadge(r.status)}</td>
+      <td onclick="event.stopPropagation()">
+        <select
+          class="quick-status badge-${statusBadgeClass(r.status)}"
+          aria-label="更新 ${esc(r.company)} 的状态"
+          onchange="quickUpdateStatus('${r.id}', this.value)"
+        >
+          ${STATUS_OPTIONS.map((status) => `<option ${r.status === status ? "selected" : ""}>${status}</option>`).join("")}
+        </select>
+      </td>
       <td style="font-size:.82rem;color:var(--text2)">${interviewLabel(r.interviewRound)}</td>
       <td style="font-size:.82rem;color:${r.salaryMin || r.salaryMax ? "var(--success)" : "var(--text2)"}">${sal}</td>
       <td>${starsHtml(r.intent)}</td>
@@ -94,6 +102,26 @@ function renderTable() {
     </tr>`;
     })
     .join("");
+}
+
+function quickUpdateStatus(id, nextStatus) {
+  const r = getRecord(id);
+  if (!r || r.status === nextStatus) return;
+
+  const previousStatus = r.status;
+  r.status = nextStatus;
+  r.lastUpdate = today();
+  r.events = appendStatusEvent(
+    r.events,
+    previousStatus,
+    nextStatus,
+    r.lastUpdate,
+    r.interviewRound,
+  );
+  updateRecord(r);
+  renderStats();
+  renderTable();
+  toast(`状态已更新为「${nextStatus}」，事件已记录`, "success");
 }
 
 function confirmDelete(id) {

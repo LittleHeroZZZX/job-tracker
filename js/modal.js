@@ -209,6 +209,25 @@ function saveRecord() {
     channel = custom || "其他";
   }
 
+  const existingRecord = editingId ? getRecord(editingId) : null;
+  const nextStatus = document.getElementById("f_status").value;
+  const statusChanged =
+    existingRecord && existingRecord.status !== nextStatus;
+  const selectedProgressDate = document.getElementById("f_lastUpdate").value;
+  const lastUpdate = statusChanged
+    ? selectedProgressDate || today()
+    : selectedProgressDate;
+  let events = collectEvents();
+  if (statusChanged) {
+    events = appendStatusEvent(
+      events,
+      existingRecord.status,
+      nextStatus,
+      lastUpdate,
+      document.getElementById("f_interviewRound").value,
+    );
+  }
+
   const record = {
     id: editingId || uid(),
     company,
@@ -220,10 +239,10 @@ function saveRecord() {
     domain: document.getElementById("f_domain").value.trim(),
     city: document.getElementById("f_city").value.trim(),
     size: document.getElementById("f_size").value,
-    status: document.getElementById("f_status").value,
+    status: nextStatus,
     interviewRound: document.getElementById("f_interviewRound").value,
     written: document.getElementById("f_written").value,
-    lastUpdate: document.getElementById("f_lastUpdate").value,
+    lastUpdate,
     progress: document.getElementById("f_progress").value.trim(),
     salaryMin: document.getElementById("f_salaryMin").value,
     salaryMax: document.getElementById("f_salaryMax").value,
@@ -235,7 +254,7 @@ function saveRecord() {
     culture: document.getElementById("f_culture").value,
     team: document.getElementById("f_team").value,
     notes: document.getElementById("f_notes").value.trim(),
-    events: collectEvents(),
+    events,
   };
 
   if (editingId) {

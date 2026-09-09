@@ -4,6 +4,16 @@
 const STORAGE_KEY = "job_tracker_v2";
 let records = [];
 
+const STATUS_OPTIONS = [
+  "待回复",
+  "简历挂",
+  "笔试",
+  "面试中",
+  "Offer",
+  "已拒绝",
+  "已鸽",
+];
+
 /* ── 公司域名映射（用于自动获取 Logo） ── */
 const COMPANY_DOMAINS = {
   字节跳动: "bytedance.com",
@@ -63,6 +73,42 @@ const EVENT_TYPES = {
 
 function getEventType(type) {
   return EVENT_TYPES[type] || EVENT_TYPES.other;
+}
+
+function statusEventType(status, interviewRound) {
+  if (status === "笔试") return "written";
+  if (status === "Offer") return "offer";
+  if (["简历挂", "已拒绝"].includes(status)) return "reject";
+  if (status === "面试中") {
+    const interviewTypes = {
+      1: "interview1",
+      2: "interview2",
+      3: "interview3",
+      4: "interview4",
+      5: "hr",
+    };
+    return interviewTypes[String(interviewRound)] || "other";
+  }
+  return "other";
+}
+
+function appendStatusEvent(
+  events,
+  previousStatus,
+  nextStatus,
+  date,
+  interviewRound,
+) {
+  if (previousStatus === nextStatus) return events || [];
+  return [
+    ...(events || []),
+    {
+      id: uid(),
+      type: statusEventType(nextStatus, interviewRound),
+      date: date || today(),
+      note: `状态更新：${previousStatus || "未设置"} → ${nextStatus}`,
+    },
+  ];
 }
 
 /* ── 已知第三方招聘平台域名（链接域名不用于公司图标） ── */
@@ -358,7 +404,7 @@ function salaryStr(r) {
   return `${r.salaryMin || "?"}~${r.salaryMax || "?"}K`;
 }
 
-function statusBadge(status) {
+function statusBadgeClass(status) {
   const map = {
     Offer: "offer",
     面试中: "process",
@@ -368,7 +414,11 @@ function statusBadge(status) {
     已拒绝: "reject",
     已鸽: "ghost",
   };
-  return `<span class="badge badge-${map[status] || "ghost"}">${esc(status)}</span>`;
+  return map[status] || "ghost";
+}
+
+function statusBadge(status) {
+  return `<span class="badge badge-${statusBadgeClass(status)}">${esc(status)}</span>`;
 }
 
 function starsHtml(n, max = 5) {
