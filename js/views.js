@@ -362,6 +362,7 @@ function drawStatusDonut() {
     面试中: { color: "#8a83ff", label: "面试中" },
     笔试: { color: "#48b0f1", label: "笔试" },
     待回复: { color: "#f5a623", label: "待回复" },
+    简历挂: { color: "#f07b5a", label: "简历挂" },
     已拒绝: { color: "#f56565", label: "已拒绝" },
     已鸽: { color: "#8892b0", label: "已鸽" },
   };

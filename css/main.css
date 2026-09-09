@@ -512,6 +512,11 @@ td {
   color: #f5a623;
   border: 1px solid rgba(245, 166, 35, 0.3);
 }
+.badge-resume-reject {
+  background: rgba(240, 123, 90, 0.15);
+  color: #f07b5a;
+  border: 1px solid rgba(240, 123, 90, 0.3);
+}
 .badge-reject {
   background: rgba(245, 101, 101, 0.15);
   color: #f56565;

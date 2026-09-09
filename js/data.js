@@ -364,6 +364,7 @@ function statusBadge(status) {
     面试中: "process",
     笔试: "test",
     待回复: "pending",
+    简历挂: "resume-reject",
     已拒绝: "reject",
     已鸽: "ghost",
   };
@@ -398,6 +399,7 @@ function statusDotColor(status) {
     面试中: "#8a83ff",
     笔试: "#48b0f1",
     待回复: "#f5a623",
+    简历挂: "#f07b5a",
     已拒绝: "#f56565",
     已鸽: "#8892b0",
   };
